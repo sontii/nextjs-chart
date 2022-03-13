@@ -32,28 +32,39 @@ function App() {
 // reload page check randomized data
 function reloadPage(){
   Router.reload(window.location.pathname)
+ //console.log(chartData.datasets[0].data)
 }
 
- // delmiter to input
- function delimiter (value){
-  var caller = event.target;
-  var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
-  let delValue = caller.value.replace(/,/g, '');
-  value = NrFormat.format(delValue);
-  caller.value = value;
-  console.log(value)
-  
-  // replace first point data in the bottom chart if not NaN
-  if (!isNaN(NrFormat)){
-      data.datasets[0].data.shift();
-      data.datasets[0].data.unshift(parseInt(NrFormat));
-      useState(myLineChart)
-  }
+// delmiter to input
+function delimiter (value){
+var caller = event.target;
+var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
+let cleanValue = caller.value.replace(/,/g, '');
+value = NrFormat.format(cleanValue);
+caller.value = value;
+
+//spred array to new array
+//slice first then push cleanData
+var newData = [...chartData.datasets[0].data].slice(1);
+newData = [cleanValue, ...newData];
+
+//new state for chart
+setChartData({
+  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+  datasets:[
+    {
+      label: "dataset for month",
+      data: newData,
+      borderColor: 'rgba(75,192,192,1)',
+      backgroundColor: 'rgba(75,192,192,0.4)',
+    },
+  ],
+});
 }
 
   return (
     <div className="App">
-      <span>Chart.js Demo</span>
+      <span>Chart.js replace first value</span>
       <div>
         <button onClick={reloadPage}>Reload Page</button>
       </div>
