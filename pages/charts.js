@@ -11,8 +11,13 @@ function App() {
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   const fillData = labels.map(() => faker.datatype.number({max:100}));
   const label = faker.company.companyName();
+  const cloneData = _.cloneDeep(fillData);
 
   const [chartData, setChartData] = useState({
+    datasets: [],
+  })
+
+  var [chartDataBottom, setChartDataBottom] = useState({
     datasets: [],
   })
 
@@ -35,9 +40,23 @@ function App() {
     });
   }, []);
 
-  var cloneData = _.cloneDeep(chartData);
-  console.log(cloneData === chartData);
-  //const cloneData = {...chartData};
+  useEffect(() => {
+    setChartDataBottom({
+      labels,
+      datasets:[
+        {
+          label,
+          data: cloneData,
+          borderColor: 'rgba(75,192,192,1)',
+          backgroundColor: 'rgba(75,192,192,0.4)',
+        },
+      ],
+    });
+    setChartOptions({
+      responsive: true,
+    });
+  }, []);
+
 
   const router = useRouter();
   //get search param from url
@@ -114,7 +133,7 @@ function App() {
         onChange={e => { delimiter(e.target.value.replace(/,/g, ''))}}/>
       </div>
       <Line options={chartOptions} data={chartData} /><p></p>
-      <Line data={cloneData} />
+      <Line options={chartOptions} data={chartDataBottom} />
     </div>
   );
 }
