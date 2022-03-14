@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 import Router from 'next/router';
+import { useRouter } from 'next/router';
 
 
 function App() {
@@ -29,42 +30,57 @@ function App() {
     });
   }, []);
 
-// reload page check randomized data
-function reloadPage(){
-  //Router.reload(window.location.pathname)
-  let url = new URL(document.location.href);
-  let params = new URLSearchParams(url.search);
-  params.set('q', '343');
-  params.toString();
-  console.log(params);
-}
 
-// delmiter to input
-function delimiter (value){
-var caller = event.target;
-var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
-let cleanValue = caller.value.replace(/,/g, '');
-value = NrFormat.format(cleanValue);
-caller.value = value;
+  const router = useRouter()
 
-//spred array to new array
-//slice first then push cleanData
-var newData = [...chartData.datasets[0].data].slice(1);
-newData = [cleanValue, ...newData];
+  useEffect(() => {
+    router.events.on('routeChangeStart', (url, { shallow }) => {
+      console.log(`App is changing to ${url}`)
+    })
+  });
 
-//new state for chart
-setChartData({
-  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-  datasets:[
-    {
-      label: "dataset for month",
-      data: newData,
-      borderColor: 'rgba(75,192,192,1)',
-      backgroundColor: 'rgba(75,192,192,0.4)',
-    },
-  ],
-});
-}
+  // reload page check randomized data
+  function reloadPage(){
+    Router.reload(window.location.pathname)
+  }
+
+  function changeurl(cleanValue) {
+    //spred array to new array
+    //slice first then push cleanData
+    var newData = [...chartData.datasets[0].data].slice(1);
+    newData = [cleanValue, ...newData];
+
+    //new state for chart
+    setChartData({
+      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+      datasets:[
+        {
+          label: "dataset for month",
+          data: newData,
+          borderColor: 'rgba(75,192,192,1)',
+          backgroundColor: 'rgba(75,192,192,0.4)',
+        },
+      ],
+    });
+  }
+
+  // delmiter to input
+  function delimiter (value){
+    //input box delmiter
+    var caller = event.target;
+    var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
+    let cleanValue = caller.value.replace(/,/g, '');
+    value = NrFormat.format(cleanValue);
+    caller.value = value;
+
+    //pass to url 'q' search param
+    let url = new URL(document.location);
+    let params = new URLSearchParams(url.search);
+    params.set('', cleanValue);
+    window.history.replaceState({}, '', `${location.pathname}?${params}`);
+    console.log(url)
+    router.push(url.pathname+url.search)
+  }
 
   return (
     <div className="App">
