@@ -31,8 +31,12 @@ function App() {
 
 // reload page check randomized data
 function reloadPage(){
-  Router.reload(window.location.pathname)
- //console.log(chartData.datasets[0].data)
+  //Router.reload(window.location.pathname)
+  let url = new URL(document.location.href);
+  let params = new URLSearchParams(url.search);
+  params.set('q', '343');
+  params.toString();
+  console.log(params);
 }
 
 // delmiter to input
