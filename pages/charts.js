@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
-import Router from 'next/router';
 import { useRouter } from 'next/router';
+import { faker } from '@faker-js/faker';
+import _ from "lodash";
 
 
 function App() {
+
+  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  const fillData = labels.map(() => faker.datatype.number({max:100}));
+  const label = faker.company.companyName();
 
   const [chartData, setChartData] = useState({
     datasets: [],
@@ -15,11 +20,11 @@ function App() {
 
   useEffect(() => {
     setChartData({
-      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+      labels,
       datasets:[
         {
-          label: "dataset for month",
-          data: [12, 55, 65, 42, 55, 33, 18],
+          label,
+          data: fillData,
           borderColor: 'rgba(75,192,192,1)',
           backgroundColor: 'rgba(75,192,192,0.4)',
         },
@@ -30,46 +35,50 @@ function App() {
     });
   }, []);
 
+  var cloneData = _.cloneDeep(chartData);
+  console.log(cloneData === chartData);
+  //const cloneData = {...chartData};
 
-  const router = useRouter()
-
+  const router = useRouter();
+  //get search param from url
+  //dynamic url fired twice the render, so check datasets not empty befor call changedata
   useEffect(() => {
-    router.events.on('beforeHistoryChange', (url, { shallow }) => {
+    if (router.asPath !== router.route) {
+      if (typeof chartData.datasets !== 'undefined' && chartData.datasets.length > 0){
       let qParam = location.search.slice(3);
-      console.log(qParam);
-    })
-  });
+      changeData(qParam);
+      }
+    }
+  }, [router])
+
 
   // reload page check randomized data
   function reloadPage(){
     router.reload(window.location.pathname)
   }
-  
-  function teszt (cleanValue){
-    console.log(chartData.datasets)
-  }
 
+  //change firts value
   function changeData(cleanValue) {
     //spred array to new array
-    //slice first then push cleanData
+    //slice first then push newData
     var newData = [...chartData.datasets[0].data].slice(1);
-    newData = [cleanValue, ...newData];
+    newData = [parseInt(cleanValue), ...newData];
 
     //new state for chart
     setChartData({
       labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
       datasets:[
         {
-          label: "dataset for month",
+          label,
           data: newData,
           borderColor: 'rgba(75,192,192,1)',
           backgroundColor: 'rgba(75,192,192,0.4)',
         },
       ],
     });
+
   }
 
-  // delmiter to input
   function delimiter (value){
     if (!isNaN(value)){
       //input box delmiter
@@ -80,7 +89,7 @@ function App() {
       caller.value = value;
 
       //pass to url 'q' search param
-      router.replace({
+      router.push({
         query: { q: parseInt(cleanValue)}
       });
     } else {
@@ -102,10 +111,10 @@ function App() {
         <label htmlFor="fname">search param: </label>
         <input type="text"
         id="sParam" 
-        //value={number || ''} 
         onChange={e => { delimiter(e.target.value.replace(/,/g, ''))}}/>
       </div>
-      <Line options={chartOptions} data={chartData} />
+      <Line options={chartOptions} data={chartData} /><p></p>
+      <Line data={cloneData} />
     </div>
   );
 }
