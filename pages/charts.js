@@ -3,7 +3,6 @@ import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 import { useRouter } from 'next/router';
 import { faker } from '@faker-js/faker';
-import _ from "lodash";
 
 
 function App() {
@@ -11,13 +10,13 @@ function App() {
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   const fillData = labels.map(() => faker.datatype.number({max:100}));
   const label = faker.company.companyName();
-  const cloneData = _.cloneDeep(fillData);
+  const cloneData = [...fillData];
 
   const [chartData, setChartData] = useState({
     datasets: [],
   })
 
-  var [chartDataBottom, setChartDataBottom] = useState({
+  const [chartDataBottom, setChartDataBottom] = useState({
     datasets: [],
   })
 
@@ -65,6 +64,12 @@ function App() {
     if (router.asPath !== router.route) {
       if (typeof chartData.datasets !== 'undefined' && chartData.datasets.length > 0){
       let qParam = location.search.slice(3);
+      
+      //if no param set to 0
+      if (qParam === ''){
+        qParam= 0;
+      }
+      
       changeData(qParam);
       }
     }
@@ -80,6 +85,7 @@ function App() {
   function changeData(cleanValue) {
     //spred array to new array
     //slice first then push newData
+    console.log(cleanValue);
     var newData = [...chartData.datasets[0].data].slice(1);
     newData = [parseInt(cleanValue), ...newData];
 
@@ -98,26 +104,38 @@ function App() {
 
   }
 
-  function delimiter (value){
-    if (!isNaN(value)){
-      //input box delmiter
-      var caller = event.target;
-      var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
-      let cleanValue = caller.value.replace(/,/g, '');
-      value = NrFormat.format(cleanValue);
-      caller.value = value;
+  function delmiter(value){
+    var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
+    value = NrFormat.format(value);
+    return value
+  }
 
-      //pass to url 'q' search param
-      router.push({
-        query: { q: parseInt(cleanValue)}
-      });
+  function inputFormat (e){
+    e.target.value = e.target.value.replace(/,/g, '');
+    if (!isNaN(e.target.value)){
+    //input box delmiter
+    //var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
+    //var cleanValue = getInput.replace(/,/g, '');
+    //value = NrFormat.format(cleanValue);
+    delmiter(e.target.value);
+    e.target.value = value;
+
     } else {
       alert('only numbers');
-      var caller = event.target;
       const replacedValue = value.slice(0, -1);
-      caller.value = replacedValue;
+      e.target.value = replacedValue;
     }
   }
+
+  //pass to url 'q' search param
+  function changeUrl (e) {
+    //console.log(e)
+    /* router.push({
+      query: { q: parseInt(param)}
+    }); */
+
+  };
+
 
   return (
     <div className="App">
@@ -130,7 +148,7 @@ function App() {
         <label htmlFor="fname">search param: </label>
         <input type="text"
         id="sParam" 
-        onChange={e => { delimiter(e.target.value.replace(/,/g, ''))}}/>
+        onChange={e => { inputFormat(e); changeUrl()}}/>
       </div>
       <Line options={chartOptions} data={chartData} /><p></p>
       <Line options={chartOptions} data={chartDataBottom} />
