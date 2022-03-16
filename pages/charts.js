@@ -3,14 +3,28 @@ import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 import { useRouter } from 'next/router';
 import { faker } from '@faker-js/faker';
+import { cloneDeep, fill } from "lodash";
 
 
 function App() {
 
   const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
-  const fillData = labels.map(() => faker.datatype.number({max:100}));
-  const label = faker.company.companyName();
-  const cloneData = [...fillData];
+  const data = labels.map(() => faker.datatype.number({max:100}));
+  const label = 'MacGyver, Franey and Kshlerin';
+
+  const populateChart = {
+    labels,
+    datasets:[
+      {
+        label,
+        data,
+        borderColor: 'rgba(75,192,192,1)',
+        backgroundColor: 'rgba(75,192,192,0.4)',
+      },
+    ],
+  };
+  
+  const cloneData = {...populateChart};
 
   const [chartData, setChartData] = useState({
     datasets: [],
@@ -23,34 +37,14 @@ function App() {
   const [chartOptions, setChartOptions] = useState({});
 
   useEffect(() => {
-    setChartData({
-      labels,
-      datasets:[
-        {
-          label,
-          data: fillData,
-          borderColor: 'rgba(75,192,192,1)',
-          backgroundColor: 'rgba(75,192,192,0.4)',
-        },
-      ],
-    });
+    setChartData(populateChart);
     setChartOptions({
       responsive: true,
     });
   }, []);
 
   useEffect(() => {
-    setChartDataBottom({
-      labels,
-      datasets:[
-        {
-          label,
-          data: cloneData,
-          borderColor: 'rgba(75,192,192,1)',
-          backgroundColor: 'rgba(75,192,192,0.4)',
-        },
-      ],
-    });
+    setChartDataBottom(cloneData);
     setChartOptions({
       responsive: true,
     });
@@ -71,6 +65,9 @@ function App() {
       }
       
       changeData(qParam);
+      //query param back to input box
+      let delimitParam = delmiter(qParam);
+      window.document.getElementById('sParam').value = delimitParam;
       }
     }
   }, [router])
@@ -85,13 +82,12 @@ function App() {
   function changeData(cleanValue) {
     //spred array to new array
     //slice first then push newData
-    console.log(cleanValue);
     var newData = [...chartData.datasets[0].data].slice(1);
     newData = [parseInt(cleanValue), ...newData];
-
+    
     //new state for chart
     setChartData({
-      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+      labels,
       datasets:[
         {
           label,
@@ -101,39 +97,34 @@ function App() {
         },
       ],
     });
-
   }
 
-  function delmiter(value){
+  //delmiter values
+  function delmiter(cleanValue){
     var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
-    value = NrFormat.format(value);
-    return value
+    var cleanValue = NrFormat.format(cleanValue);
+    return cleanValue; 
   }
 
+  //check number then change input value
   function inputFormat (e){
-    e.target.value = e.target.value.replace(/,/g, '');
-    if (!isNaN(e.target.value)){
+    var cleanValue = e.target.value.replace(/,/g, '');
+    if (!isNaN(cleanValue)){
     //input box delmiter
-    //var NrFormat = new Intl.NumberFormat('en-US', {minimumFractionDigits: 0});
-    //var cleanValue = getInput.replace(/,/g, '');
-    //value = NrFormat.format(cleanValue);
-    delmiter(e.target.value);
-    e.target.value = value;
+    e.target.value = delmiter(cleanValue);
 
     } else {
       alert('only numbers');
-      const replacedValue = value.slice(0, -1);
+      const replacedValue = e.target.value.slice(0, -1);
       e.target.value = replacedValue;
     }
   }
 
   //pass to url 'q' search param
   function changeUrl (e) {
-    //console.log(e)
-    /* router.push({
-      query: { q: parseInt(param)}
-    }); */
-
+    router.push({
+      query: { q: parseInt(e.target.value.replace(/,/g, ''))}
+    });
   };
 
 
@@ -147,8 +138,9 @@ function App() {
       <div>
         <label htmlFor="fname">search param: </label>
         <input type="text"
-        id="sParam" 
-        onChange={e => { inputFormat(e); changeUrl()}}/>
+        id="sParam"
+        onPaste={e => {inputFormat(e); changeUrl(e)}}
+        onChange={e => {inputFormat(e); changeUrl(e)}}/>
       </div>
       <Line options={chartOptions} data={chartData} /><p></p>
       <Line options={chartOptions} data={chartDataBottom} />
