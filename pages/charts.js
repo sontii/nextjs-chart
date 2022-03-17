@@ -3,7 +3,6 @@ import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 import { useRouter } from 'next/router';
 import { faker } from '@faker-js/faker';
-import { cloneDeep, fill } from "lodash";
 
 
 function App() {
